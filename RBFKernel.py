@@ -3,9 +3,8 @@ import copy
 import scipy.spatial
 
 
-#
 # exp(-0.5 ||x1-x2||_2^2 / (2*sqrt(length_scale)))
-#
+
 class RBFKernel:
     length_scale = 1.0
 
@@ -15,28 +14,22 @@ class RBFKernel:
         self.num_hyperparams = 1
 
     def clone(self):
-
         newinstance = copy.deepcopy(self)
-
         return newinstance
 
     def compute(self, X, Y):
-
         sqdist = scipy.spatial.distance.cdist(X, Y, 'euclidean')
         sqdist = sqdist * sqdist
 
         return np.exp(sqdist * (-1 / (2 * self.length_scale * self.length_scale)))
 
     def selfCompute(self, X):
-
         return self.compute(X, X)
 
     def computeSelfDistance(self, X):
-
         return np.ones([X.shape[0], 1]).ravel()
 
     def grad_EVzx_by_Z(self, EVzx_this, Z, A, B, p, r):
-
         P = Z.shape[0]
         R = Z.shape[1]
         N = A.shape[0]
@@ -61,7 +54,6 @@ class RBFKernel:
         return res
 
     def grad_EVzx_by_hyper(self, EVzx_this, Z, A, B, hyperno):
-
         P = Z.shape[0]
         R = Z.shape[1]
         N = A.shape[0]
@@ -106,7 +98,6 @@ class RBFKernel:
         return res
 
     def grad_EVzxVzxT_by_hyper(self, EVzxVzxT_list_this, Z, A, B, hyperno):
-
         EVzxVzxT_list = EVzxVzxT_list_this
 
         newkernel = self.clone()
@@ -119,9 +110,7 @@ class RBFKernel:
 
         return (EVzxVzxT_this_diff - EVzxVzxT_this) / 0.00000001
 
-    #
     def grad_EVzxVzxT_by_hyper_exact(self, EVzxVzxT_list_this, Z, A, B, hyperno):
-
         P = Z.shape[0]
         R = Z.shape[1]
         N = A.shape[0]
@@ -174,15 +163,12 @@ class RBFKernel:
         res = EVzxVzxT_list_this * (-0.5 * T1 - 0.5 * T2 + T3 - 0.5 * T4 + T5 + T6) + dDetSCinvI * expTerm
 
         res = np.sum(res, axis=0)
-
         return res
 
     def grad_EVxx_by_Z(self, Z, A, p, r):
-
         return 0.0
 
     def grad_EVzxVzxT_by_Z(self, EVzxVzxT_list_this, Z, A, B, p, r):
-
         P = Z.shape[0]
         R = Z.shape[1]
         N = A.shape[0]
@@ -207,13 +193,11 @@ class RBFKernel:
 
         # set the diagonal
         # dZ[:,p,p] = dZ[:,p,p]/2.
-
         res = np.sum(EVzxVzxT_list_this * dZ, axis=0)
 
         return res
 
     def grad_K_by_hyper(self, K, Z, hyperno):
-
         if hyperno != 0:
             return K * 0
 
@@ -291,30 +275,22 @@ class RBFKernel:
         return res
 
     def EVzxVzxT(self, Z, A, B):
-
         N = A.shape[0]
-
-        # myFunct = self.EVzxVzxT_single_closure(Z,A,B)
-        # mapped = np.array(map(myFunct, range(N)))
 
         mapped = [self.EVzxVzxT_single(Z, A, B, i) for i in range(N)]
 
         return mapped
 
     def EVzxVzxT_single(self, Z, A, B, i):
-
         P = Z.shape[0]
         R = A.shape[1]
 
         A = np.reshape(A[i, :], [1, R])
-        # B=np.reshape(B[i,:],[1,R])
 
         alpha = self.length_scale * self.length_scale
         S = B[0, 0] * B[0, 0]
 
         logdetM = pow(2 * S / alpha + 1., -R / 2.)
-
-        res = np.zeros([P, P])
 
         Sinv = 1 / (2 / alpha + 1 / S)
 
@@ -338,13 +314,10 @@ class RBFKernel:
         return funct
 
     def EVxx(self, A, B):
-
         return 0.0
 
     def grad_Kxx_by_hyper(self, Kxx, hyperno):
-
         N = Kxx.shape[0]
-
         return np.zeros([N, 1]).ravel()
 
     def grad_EVzx_by_mu(self, EVzx_this, Z, A, B, n, r):
@@ -417,11 +390,7 @@ class RBFKernel:
 
         res = EVzxVzxT_list_this * (res1 + res2 + res3)
 
-        # res=np.sum(res,axis=0)
-
         return res
-
-        # derivatives wrt GP input prior mean
 
     def grad_EVzx_by_c(self, EVzx_this, Z, A, B, C, Kpred, p, r):
         P = Z.shape[0]
@@ -446,7 +415,6 @@ class RBFKernel:
         return res
 
     def grad_EVzxVzxT_by_mu(self, EVzxVzxT_list_this, Z, A, B, n, r):
-
         P = Z.shape[0]
         R = Z.shape[1]
         N = A.shape[0]
@@ -476,7 +444,6 @@ class RBFKernel:
         return res
 
     def grad_EVzxVzxT_by_c(self, EVzxVzxT_list_this, Z, A, B, C, Kpred, p, r):
-
         P = Z.shape[0]
         R = Z.shape[1]
         N = A.shape[0]
@@ -506,5 +473,4 @@ class RBFKernel:
         return res
 
     def grad_EVxx_by_c(self, Kpred, A, B, C, p, r):
-
         return 0.0
